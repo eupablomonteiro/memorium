@@ -1,0 +1,63 @@
+# ==============================
+# 📦 Memorium — .gitignore
+# ==============================
+
+# --- Dependências ---
+node_modules/
+.pnpm-store/
+
+# --- Build outputs ---
+dist/
+build/
+.next/
+out/
+
+# --- Configuração ---
+memorium.config.json
+
+# --- Ambiente ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# --- Turborepo ---
+.turbo/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# --- IDEs ---
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- Testes ---
+coverage/
+*.lcov
+
+# --- Documentação (ignorada no repo) ---
+/docs
+
+# --- Misc ---
+*.tsbuildinfo
+*.cache
+.vercel

@@ -1,0 +1,25 @@
+{
+  "name": "memorium",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Upload e organização automática de fotos e vídeos em rede local",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test"
+  },
+  "keywords": [
+    "memorium",
+    "photo",
+    "video",
+    "upload",
+    "organizer"
+  ],
+  "author": "eupablomonteiro",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "devDependencies": {
+    "turbo": "^2"
+  }
+}
