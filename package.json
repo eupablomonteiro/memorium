@@ -7,7 +7,8 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "test": "turbo test"
+    "test": "turbo test",
+    "clean": "rm -rf node_modules .turbo tsconfig.tsbuildinfo apps/*/dist apps/*/.next packages/*/dist packages/*/node_modules"
   },
   "keywords": [
     "memorium",

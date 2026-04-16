@@ -11,16 +11,18 @@
       "default": "./dist/index.js"
     }
   },
+  "peerDependencies": {
+    "zod": "^4"
+  },
   "scripts": {
     "build": "tsc",
     "lint": "tsc --noEmit"
   },
-  "dependencies": {
-    "zod": "^3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@memorium/tsconfig": "workspace:*",
     "@types/node": "^22",
-    "typescript": "^5"
+    "typescript": "^5",
+    "zod": "^4"
   }
 }

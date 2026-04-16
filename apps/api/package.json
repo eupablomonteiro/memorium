@@ -11,18 +11,21 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "peerDependencies": {
+    "zod": "^4"
+  },
   "dependencies": {
     "@memorium/config": "workspace:*",
     "@memorium/utils": "workspace:*",
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "@scalar/express-api-reference": "^0.9.7",
     "cors": "^2",
     "express": "^4",
     "helmet": "^8",
     "morgan": "^1",
     "multer": "^1",
-    "swagger-jsdoc": "^6",
-    "swagger-ui-express": "^5",
     "systeminformation": "^5",
-    "zod": "^3"
+    "zod": "^4"
   },
   "devDependencies": {
     "@memorium/tsconfig": "workspace:*",
@@ -31,11 +34,9 @@
     "@types/express-serve-static-core": "^4",
     "@types/morgan": "^1",
     "@types/multer": "^1",
-    "@types/swagger-jsdoc": "^6",
-    "@types/swagger-ui-express": "^4",
     "@types/node": "^22",
-    "supertest": "^7",
     "@types/supertest": "^6",
+    "supertest": "^7",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^3"

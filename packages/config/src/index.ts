@@ -12,3 +12,4 @@ export type {
   UploadResult,
   UploadResultItem,
 } from "./types/index.js";
+export { z } from "zod";

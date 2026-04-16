@@ -13,6 +13,7 @@ async function bootstrap(): Promise<void> {
     console.log("Memorium API");
     console.log(`Servidor rodando em http://localhost:${port}`);
     console.log(`Docs em http://localhost:${port}/docs`);
+    console.log(`OpenAPI em http://localhost:${port}/docs/openapi.json`);
     console.log(`Storage: ${config.storagePath}`);
     console.log("---");
   });

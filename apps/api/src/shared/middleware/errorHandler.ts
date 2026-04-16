@@ -1,5 +1,4 @@
 import type { Request, Response, NextFunction } from "express";
-import { success } from "zod/v4";
 
 export interface AppError extends Error {
   statusCode?: number;
@@ -14,7 +13,6 @@ export class ErrorHandler {
     _next: NextFunction,
   ): void {
     const statusCode = err.statusCode || 500;
-    const isOperational = err.isOperational !== false;
 
     console.error(`Erro ${statusCode}: `, err.message);
 

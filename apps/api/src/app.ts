@@ -4,7 +4,24 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import { ErrorHandler } from "./shared/middleware/errorHandler.js";
-import { setupSwagger } from "./shared/docs/swagger.js";
+import { setupDocs } from "./shared/docs/scalar.js";
+
+import configRoutes from "./modules/config/config.routes.js";
+import systemRoutes from "./modules/system/system.routes.js";
+
+const helmetConfig = {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      fontSrc: ["'self'", "https://cdn.jsdelivr.net", "data:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+};
 
 export class App {
   private app: Express;
@@ -18,7 +35,7 @@ export class App {
   }
 
   private setupMiddlewares(): void {
-    this.app.use(helmet());
+    this.app.use(helmet(helmetConfig));
     this.app.use(cors());
     this.app.use(morgan("dev"));
     this.app.use(express.json());
@@ -26,11 +43,12 @@ export class App {
   }
 
   private setupRoutes(): void {
-    // em branco por enquanto - fase 2
+    this.app.use("/api", configRoutes);
+    this.app.use("/api", systemRoutes);
   }
 
   private setupDocs(): void {
-    setupSwagger(this.app);
+    setupDocs(this.app);
   }
 
   private setupErrorHandling(): void {

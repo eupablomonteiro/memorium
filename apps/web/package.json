@@ -8,12 +8,16 @@
     "start": "next start",
     "lint": "next lint"
   },
+    "peerDependencies": {
+    "zod": "^4"
+  },
   "dependencies": {
     "@memorium/config": "workspace:*",
     "@memorium/utils": "workspace:*",
     "next": "^14",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^4"
   },
   "devDependencies": {
     "@memorium/tsconfig": "workspace:*",
