@@ -8,6 +8,7 @@ import { setupDocs } from "./shared/docs/scalar.js";
 
 import configRoutes from "./modules/config/config.routes.js";
 import systemRoutes from "./modules/system/system.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
 
 const helmetConfig = {
   contentSecurityPolicy: {
@@ -45,6 +46,7 @@ export class App {
   private setupRoutes(): void {
     this.app.use("/api", configRoutes);
     this.app.use("/api", systemRoutes);
+    this.app.use("/api", uploadRoutes);
   }
 
   private setupDocs(): void {
