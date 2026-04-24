@@ -14,12 +14,14 @@ export interface UploadedFile {
 
 export class UploadService {
   private metadataService: MetadataService;
-  private storageService: StorageService;
 
   constructor() {
     this.metadataService = new MetadataService();
+  }
+
+  private getStorageService(): StorageService {
     const config = ConfigService.getInstance().load();
-    this.storageService = new StorageService(config.storagePath);
+    return new StorageService(config.storagePath);
   }
 
   async processFile(filePath: string, originalName: string, mimeType: string): Promise<UploadedFile> {
@@ -27,10 +29,11 @@ export class UploadService {
     const detectedDate = metadata.detectedDate || new Date();
 
     const fileName = FileHelper.generateFilename(detectedDate, originalName);
-    const directory = this.storageService.getDirectoryForDate(detectedDate);
+    const storageService = this.getStorageService();
+    const directory = storageService.getDirectoryForDate(detectedDate);
     const destinationPath = path.join(directory, fileName);
 
-    const savedPath = await this.storageService.moveFile(filePath, destinationPath);
+    const savedPath = await storageService.moveFile(filePath, destinationPath);
 
     return {
       originalName,
@@ -41,6 +44,7 @@ export class UploadService {
   }
 
   getStoragePath(): string {
-    return this.storageService.getStoragePath();
+    const config = ConfigService.getInstance().load();
+    return config.storagePath;
   }
 }

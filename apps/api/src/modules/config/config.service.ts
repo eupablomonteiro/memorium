@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { cwd } from "process";
 
 export interface AppConfig {
   storagePath: string;
@@ -7,11 +8,11 @@ export interface AppConfig {
 }
 
 const DEFAULT_CONFIG: AppConfig = {
-  storagePath: "D:\\Memorium",
+  storagePath: "C:\\Memorium",
   port: 3001,
 };
 
-const CONFIG_FILE = path.resolve(process.cwd(), "memorium.config.json");
+const CONFIG_FILE = path.resolve(cwd(), "memorium.config.json");
 
 export class ConfigService {
   private static instance: ConfigService;

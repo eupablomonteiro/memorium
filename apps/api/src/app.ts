@@ -10,6 +10,13 @@ import configRoutes from "./modules/config/config.routes.js";
 import systemRoutes from "./modules/system/system.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
 
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 const helmetConfig = {
   contentSecurityPolicy: {
     directives: {
@@ -17,7 +24,7 @@ const helmetConfig = {
       scriptSrc: ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      connectSrc: ["'self'", "https://cdn.jsdelivr.net", "http://*", "https://*"],
       fontSrc: ["'self'", "https://cdn.jsdelivr.net", "data:"],
     },
   },
@@ -37,7 +44,7 @@ export class App {
 
   private setupMiddlewares(): void {
     this.app.use(helmet(helmetConfig));
-    this.app.use(cors());
+    this.app.use(cors(corsOptions));
     this.app.use(morgan("dev"));
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));

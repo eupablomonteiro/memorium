@@ -7,7 +7,7 @@ export class ConfigController {
   private configService = ConfigService.getInstance();
 
   getConfig = (_req: Request, res: Response): void => {
-    const config = this.configService.get();
+    const config = this.configService.load();
     res.json({ success: true, data: config } as ApiResponse);
   };
 

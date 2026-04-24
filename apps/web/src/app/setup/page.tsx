@@ -3,17 +3,13 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
-import Link from "next/link";
 import type { DiskInfo } from "@memorium/config";
-
-function formatBytes(bytes: number): string {
-  const gb = bytes / (1024 * 1024 * 1024);
-  return `${gb.toFixed(1)} GB`;
-}
+import Link from "next/link";
+import { formatBytes } from "@/utils/formatBytes";
 
 export default function SetupPage() {
   const [disks, setDisks] = useState<DiskInfo[]>([]);
-  const [selectedPath, setSelectedPath] = useState("");
+  const [selectedDisk, setSelectedDisk] = useState("");
   const [customPath, setCustomPath] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -27,13 +23,14 @@ export default function SetupPage() {
           api.config.get(),
         ]);
         setDisks(diskList);
-        setSelectedPath(configData.storagePath);
-        setCustomPath(configData.storagePath);
+        
+        if (configData.storagePath) {
+          const baseDisk = configData.storagePath.charAt(0);
+          setSelectedDisk(baseDisk);
+          setCustomPath(configData.storagePath);
+        }
       } catch (error) {
-        showToast(
-          error instanceof Error ? error.message : "Erro ao carregar dados",
-          "error"
-        );
+        showToast(error instanceof Error ? error.message : "Erro ao carregar", "error");
       } finally {
         setIsLoading(false);
       }
@@ -41,17 +38,23 @@ export default function SetupPage() {
     loadData();
   }, [showToast]);
 
+  const handleDiskSelect = (diskPath: string) => {
+    setSelectedDisk(diskPath);
+    setCustomPath(diskPath + ":\\Memorium");
+  };
+
+  const handleCustomPathChange = (value: string) => {
+    setCustomPath(value);
+    setSelectedDisk("");
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const pathToSave = selectedPath || customPath;
-      await api.config.save({ storagePath: pathToSave });
-      showToast("Configuração salva com sucesso!", "success");
+      await api.config.save({ storagePath: customPath });
+      showToast("Configuração salva!", "success");
     } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : "Erro ao salvar",
-        "error"
-      );
+      showToast(error instanceof Error ? error.message : "Erro ao salvar", "error");
     } finally {
       setIsSaving(false);
     }
@@ -59,103 +62,103 @@ export default function SetupPage() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="flex items-center gap-2">
-          <span className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-          <span className="text-gray-600">Carregando...</span>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500">Carregando...</p>
         </div>
-      </main>
+      </div>
     );
   }
 
+  const isDiskSelected = (diskPath: string) => selectedDisk === diskPath;
+
   return (
-    <main className="flex min-h-screen flex-col items-center p-6">
-      <div className="w-full max-w-md flex flex-col items-center gap-6">
-        <Link href="/" className="self-start">
-          <span className="text-3xl">📦</span>
-        </Link>
-
-        <div className="w-full text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Configuração</h1>
-          <p className="text-sm text-gray-500">
-            Escolha onde suas memórias serão salvas
-          </p>
+    <div className="p-4">
+      <div className="max-w-md mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900">Configurações</h1>
+          <p className="text-gray-500 mt-1">Escolha onde salvar suas memórias</p>
         </div>
 
-        <div className="w-full space-y-3">
-          <h2 className="font-medium text-gray-700">Discos disponíveis</h2>
-          {disks.map((disk) => (
-            <button
-              key={disk.path}
-              onClick={() => setSelectedPath(disk.path)}
-              className={`
-                w-full rounded-xl border-2 p-4 text-left transition-all
-                ${
-                  selectedPath === disk.path
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }
-              `}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">💾</span>
-                  <div>
-                    <p className="font-medium text-gray-800">{disk.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatBytes(disk.available)} livre de {formatBytes(disk.size)}
-                    </p>
-                  </div>
-                </div>
-                {selectedPath === disk.path && (
-                  <span className="text-blue-500">✓</span>
-                )}
-              </div>
-              <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
-                <div
-                  className="h-2 rounded-full bg-blue-500"
-                  style={{ width: `${disk.usagePercent}%` }}
-                />
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full">
-          <label className="font-medium text-gray-700">
-            Ou digite um caminho personalizado
-          </label>
+        {/* Custom Path Input - Show first */}
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Caminho de armazenamento</label>
           <input
             type="text"
             value={customPath}
-            onChange={(e) => {
-              setCustomPath(e.target.value);
-              setSelectedPath("");
-            }}
-            placeholder="D:\MinhasFotos"
-            className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none"
+            onChange={(e) => handleCustomPathChange(e.target.value)}
+            placeholder="F:\Memorium"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 bg-white"
           />
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={isSaving || (!selectedPath && !customPath)}
-          className="w-full rounded-xl bg-blue-500 py-4 text-lg font-semibold text-white transition-all hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+        {/* Disks List */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ou selecione um disco</h2>
+          {disks.map((disk) => {
+            const diskLetter = disk.name.charAt(0);
+            const isSelected = isDiskSelected(diskLetter);
+            
+            return (
+              <button
+                key={disk.path}
+                onClick={() => handleDiskSelect(diskLetter)}
+                className={`w-full p-4 rounded-xl text-left transition-all border-2 ${isSelected ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
+                      <span className="text-2xl">💾</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{disk.name}</p>
+                      <p className="text-xs text-gray-500">{formatBytes(disk.available)} livre</p>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center">✓</div>
+                  )}
+                </div>
+                <div className="mt-3 h-1.5 w-full rounded-full bg-gray-200">
+                  <div className="h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style={{ width: `${disk.usagePercent}%` }} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Save Button */}
+        <button 
+          onClick={handleSave} 
+          disabled={isSaving || !customPath} 
+          className="w-full py-4 bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-semibold rounded-xl transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSaving ? (
-            <span className="flex items-center justify-center gap-2">
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Salvando...
-            </span>
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            "💾 Salvar Configuração"
+            <span>💾</span>
           )}
+          {isSaving ? "Salvando..." : "Salvar Configuração"}
         </button>
 
-        <Link href="/upload" className="text-sm text-gray-400 hover:text-gray-600">
-          ← Voltar para Upload
+        {/* Back Button */}
+        <Link href="/" className="w-full py-2 border-2 border-indigo-500 text-indigo-500 font-semibold rounded-xl transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          Voltar
         </Link>
+
+        {/* Info Card */}
+        <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+          <div className="flex items-start gap-3">
+            <span className="text-xl">💡</span>
+            <div className="text-sm">
+              <p className="font-medium text-indigo-900 mb-1">Dica</p>
+              <p className="text-indigo-700">Digite o caminho ou selecione um disco. Por padrão, usa a pasta "Memorium".</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

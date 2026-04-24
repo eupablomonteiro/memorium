@@ -14,4 +14,7 @@ export const appConfigSchema = z
   })
   .strict();
 
-export type AppConfig = z.infer<typeof appConfigSchema>;
+export type AppConfig = z.infer<typeof appConfigSchema> & {
+  storagePath: string;
+  port: number;
+};

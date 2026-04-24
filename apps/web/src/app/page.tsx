@@ -1,59 +1,60 @@
 import Link from "next/link";
-import { api, API_BASE_URL } from "@/lib/api";
-
-async function getConfig() {
-  try {
-    const config = await api.config.get();
-    return config;
-  } catch {
-    return null;
-  }
-}
+import { api } from "@/lib/api";
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const config = await getConfig();
+  let config = null;
+  try {
+    const response = await api.config.get();
+    config = response;
+  } catch (e) {
+    console.error("Fetch config error:", e);
+    config = null;
+  }
+  const hasStorage = config?.storagePath;
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="flex flex-col items-center gap-8 text-center">
-        <div className="flex items-center gap-3">
-          <span className="text-5xl">📦</span>
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-            Memorium
-          </h1>
+    <div className="p-4">
+      <div className="max-w-md mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="text-center animate-fade-in-up">
+          <h1 className="text-3xl font-bold text-gray-900">Memorium</h1>
+          <p className="text-gray-500 mt-2">Guarde seus momentos de forma simples e segura.</p>
         </div>
 
-        <p className="max-w-md text-lg text-gray-600">
-          Guardar momentos de forma simples e segura.
-        </p>
-
-        <div className="flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-sm font-medium text-green-700">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-          Servidor conectado em {API_BASE_URL}
+        {/* Status Card */}
+        <div className="card p-5 animate-fade-in-up delay-75">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+              <span className="text-sm font-medium text-gray-700">Conectado</span>
+            </div>
+          </div>
+          {hasStorage ? (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <span>📁</span>
+              <span className="truncate">{config?.storagePath}</span>
+            </div>
+          ) : (
+            <p className="text-sm text-amber-600 flex items-center gap-2">
+              <span>⚠️</span>
+              Configure o local primeiro
+            </p>
+          )}
         </div>
 
-        {config?.storagePath && (
-          <p className="text-sm text-gray-500">
-            💾 Salvando em: {config.storagePath}
-          </p>
-        )}
+        {/* Action Buttons */}
+        <div className="space-y-3 animate-fade-in-up delay-150">
+          <Link href="/upload" className="btn-primary">📤 Enviar Memórias</Link>
+          <Link href="/setup" className="w-full py-4 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-xl hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2">⚙️ Configurações</Link>
+        </div>
 
-        <div className="flex flex-col gap-4 w-full max-w-xs">
-          <Link
-            href="/upload"
-            className="rounded-xl bg-blue-500 py-4 text-lg font-semibold text-white transition-all hover:bg-blue-600 hover:scale-[1.02]"
-          >
-            📤 Enviar Memórias
-          </Link>
-
-          <Link
-            href="/setup"
-            className="rounded-xl border-2 border-gray-200 py-4 text-lg font-medium text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50"
-          >
-            ⚙️ Configurações
-          </Link>
+        {/* Footer */}
+        <div className="text-center text-xs text-gray-400 animate-fade-in-up delay-225">
+          <p>Feito para preservar memórias</p>
+          <p>100% local • Privacidade garantida</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

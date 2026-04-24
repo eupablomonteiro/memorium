@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "start": "turbo start",
     "lint": "turbo lint",
     "test": "turbo test",
     "clean": "rm -rf node_modules .turbo tsconfig.tsbuildinfo apps/*/dist apps/*/.next packages/*/dist packages/*/node_modules"

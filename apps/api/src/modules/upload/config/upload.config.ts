@@ -7,7 +7,6 @@ import { ALLOWED_EXTENSIONS } from "@memorium/config";
 const storage = diskStorage({
   destination: (_req, _file, cb) => {
     const tempDir = path.join(process.cwd(), "temp");
-
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }

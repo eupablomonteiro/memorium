@@ -5,6 +5,7 @@
 # --- Dependências ---
 node_modules/
 .pnpm-store/
+temp/
 
 # --- Build outputs ---
 dist/
@@ -14,6 +15,8 @@ out/
 
 # --- Configuração ---
 memorium.config.json
+.opencode.json
+.opencode/
 
 # --- Ambiente ---
 .env
@@ -53,6 +56,7 @@ desktop.ini
 # --- Testes ---
 coverage/
 *.lcov
+test-temp-metadata/
 
 # --- Documentação (ignorada no repo) ---
 /docs

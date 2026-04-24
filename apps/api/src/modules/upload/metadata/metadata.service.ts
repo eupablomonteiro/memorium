@@ -65,6 +65,33 @@ export class MetadataService {
     );
   }
 
+  private parseFFmpegDate(dateStr: string): Date | null {
+    let date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+
+    const match = dateStr.match(
+      /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/,
+    );
+    if (match) {
+      const [, year, month, day, hour, minute, second] = match;
+      date = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        parseInt(hour),
+        parseInt(minute),
+        parseInt(second),
+      );
+      if (!isNaN(date.getTime())) {
+        return date;
+      }
+    }
+
+    return null;
+  }
+
   private async extractPhotoMetadata(
     filePath: string,
     originalName: string,
@@ -119,13 +146,22 @@ export class MetadataService {
           );
         }
 
-        const creationTime =
+        let creationTime =
           metadata.format?.tags?.creation_time ||
           metadata.format?.creation_time;
 
+        if (!creationTime && Array.isArray(metadata.streams)) {
+          for (const stream of metadata.streams) {
+            if (stream.tags?.creation_time) {
+              creationTime = stream.tags.creation_time;
+              break;
+            }
+          }
+        }
+
         if (creationTime) {
-          const date = new Date(creationTime);
-          if (!isNaN(date.getTime())) {
+          const date = this.parseFFmpegDate(creationTime);
+          if (date && !isNaN(date.getTime())) {
             return resolve({
               originalName,
               detectedDate: date,
@@ -133,6 +169,10 @@ export class MetadataService {
               mimeType,
               fileSize: fileStats.size,
             });
+          } else {
+            console.warn(
+              `[MetadataService] Failed to parse creation time "${creationTime}" for ${originalName}`,
+            );
           }
         }
 
