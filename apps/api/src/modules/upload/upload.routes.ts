@@ -6,7 +6,7 @@ const router = Router();
 const uploadController = new UploadController();
 
 router.post(
-  "/upload",
+  "/",
   uploadConfig.array("files", 100),
   uploadController.upload.bind(uploadController),
 );

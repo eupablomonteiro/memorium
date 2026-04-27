@@ -6,11 +6,19 @@ import { FilePicker, type SelectedFile } from "@/components/FilePicker";
 import { FilePreviewList } from "@/components/FilePreviewList";
 import { useToast } from "@/components/Toast";
 import { formatBytes } from "@/utils/formatBytes";
+import { generateSessionId } from "@/utils/session";
 
 export default function UploadPage() {
   const [files, setFiles] = useState<SelectedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{
+    processed: number;
+    total: number;
+    percentage: number;
+  } | null>(null);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
   const { showToast } = useToast();
+  const [wsClose, setWsClose] = useState<(() => void) | null>(null);
 
   const totalSize = files.reduce((acc, f) => acc + f.file.size, 0);
 
@@ -25,9 +33,41 @@ export default function UploadPage() {
   const handleUpload = async () => {
     if (files.length === 0) return;
     setIsUploading(true);
+    setUploadProgress(null);
+    setUploadPercent(null);
+
+    const sessionId = generateSessionId();
+
+    // Conecta via WebSocket
+    const { close, connected } = api.upload.connectToProgress(
+      sessionId,
+      (data) => {
+        console.log("[Upload] Progresso:", data);
+        setUploadProgress(data);
+      },
+      () => {
+        console.log("[Upload] WebSocket concluído");
+        setWsClose(null);
+      },
+    );
+    setWsClose(() => close);
+
+    // AGUARDA O WEBSOCKET ESTAR TOTALMENTE CONECTADO
+    await connected;
+    console.log("[Upload] WebSocket conectado, iniciando upload...");
+
     try {
       const fileObjects = files.map((f) => f.file);
-      const result = await api.upload.uploadFiles(fileObjects);
+      const result = await api.upload.uploadFiles(
+        fileObjects,
+        sessionId,
+        (percent) => {
+          console.log(`[Upload] Enviando: ${percent}%`);
+          setUploadPercent(percent);
+        }
+      );
+
+      setUploadPercent(null);
 
       if (result.success > 0) {
         showToast(
@@ -49,6 +89,10 @@ export default function UploadPage() {
       );
     } finally {
       setIsUploading(false);
+      wsClose?.();
+      setWsClose(null);
+      setUploadProgress(null);
+      setUploadPercent(null);
     }
   };
 
@@ -80,18 +124,67 @@ export default function UploadPage() {
           disabled={isUploading}
           className={`btn-primary ${files.length > 0 ? "opacity-100" : "opacity-50"}`}
         >
-          {isUploading ? (
+          {isUploading && uploadPercent !== null ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
             <span>🚀</span>
           )}
-          {isUploading
-            ? "Enviando..."
-            : `Enviar ${files.length} arquivo${files.length !== 1 ? "s" : ""}`}
+          {isUploading && uploadPercent !== null
+            ? `Enviando ${uploadPercent}%`
+            : isUploading && uploadProgress
+              ? `${uploadProgress.processed}/${uploadProgress.total} (${uploadProgress.percentage}%)`
+              : isUploading
+                ? "Enviando..."
+                : `Enviar ${files.length} arquivo${files.length !== 1 ? "s" : ""}`}
         </button>
 
+        {/* Card de Progresso em Tempo Real */}
+        {isUploading && (
+          <div className="card p-4 animate-fade-in-up border-blue-200 bg-blue-50">
+            <div className="flex items-center justify-between text-sm mb-3">
+              <span className="text-gray-700 font-medium">
+                {uploadPercent !== null
+                  ? `Enviando arquivos... ${uploadPercent}%`
+                  : uploadProgress
+                    ? "Processando arquivos..."
+                    : "Preparando..."}
+              </span>
+              <span className="text-blue-600 font-bold text-lg">
+                {uploadPercent !== null
+                  ? `${uploadPercent}%`
+                  : uploadProgress
+                    ? `${uploadProgress.percentage}%`
+                    : "..."}
+              </span>
+            </div>
+            <div className="progress-bar h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="progress-fill bg-blue-500 h-full transition-all duration-300 ease-out"
+                style={{
+                  width: uploadPercent !== null
+                    ? `${uploadPercent}%`
+                    : uploadProgress
+                      ? `${uploadProgress.percentage}%`
+                      : "0%"
+                }}
+              />
+            </div>
+            {uploadPercent !== null ? (
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Enviando arquivos para o servidor...
+              </p>
+            ) : uploadProgress ? (
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                {uploadProgress.processed} de {uploadProgress.total} arquivos processados
+              </p>
+            ) : null}
+          </div>
+        )}
+
         {/* Summary & Upload Button */}
-        {files.length > 0 && (
+        {files.length > 0 && !isUploading && (
           <div className="space-y-3 animate-fade-in-up delay-150">
             <div className="card p-4">
               <div className="flex items-center justify-between text-sm mb-3">
@@ -102,12 +195,6 @@ export default function UploadPage() {
                 <span className="font-medium text-gray-900">
                   {formatBytes(totalSize)}
                 </span>
-              </div>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{ width: isUploading ? "100%" : "0%" }}
-                />
               </div>
             </div>
           </div>
